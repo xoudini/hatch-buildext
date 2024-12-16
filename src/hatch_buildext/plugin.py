@@ -40,6 +40,16 @@ class _GetLibraries(t.Protocol):
     def get_libraries(self, root: str) -> t.Sequence[str]: ...
 
 
+@t.runtime_checkable
+class _GetExtraCompileArgs(t.Protocol):
+    def get_extra_compile_args(self, root: str) -> t.Sequence[str]: ...
+
+
+@t.runtime_checkable
+class _GetExtraLinkArgs(t.Protocol):
+    def get_extra_link_args(self, root: str) -> t.Sequence[str]: ...
+
+
 class ExtensionBuildHook(BuildHookInterface):
     PLUGIN_NAME = "buildext"
 
@@ -121,6 +131,16 @@ class ExtensionBuildHook(BuildHookInterface):
             return module.get_libraries(root=self.root)
         return []
 
+    def _get_extra_compile_args(self, module: "ModuleType") -> t.List[str]:
+        if isinstance(module, _GetExtraCompileArgs):
+            return module.get_extra_compile_args(root=self.root)
+        return []
+
+    def _get_extra_link_args(self, module: "ModuleType") -> t.List[str]:
+        if isinstance(module, _GetExtraLinkArgs):
+            return module.get_extra_link_args(root=self.root)
+        return []
+
     def _build(self) -> None:
         from setuptools import Distribution, Extension
         from setuptools.command import build_ext
@@ -137,6 +157,8 @@ class ExtensionBuildHook(BuildHookInterface):
                 _include_dirs = self._get_include_dirs(module=module)
                 _library_dirs = self._get_library_dirs(module=module)
                 _libraries = self._get_libraries(module=module)
+                _extra_compile_args = self._get_extra_compile_args(module=module)
+                _extra_link_args = self._get_extra_link_args(module=module)
 
                 _extension = Extension(
                     name=extension.name,
@@ -145,8 +167,8 @@ class ExtensionBuildHook(BuildHookInterface):
                     library_dirs=_library_dirs,
                     libraries=_libraries,
                     runtime_library_dirs=None,
-                    extra_compile_args=["-std=c99"],
-                    extra_link_args=[],
+                    extra_compile_args=_extra_compile_args,
+                    extra_link_args=_extra_link_args,
                 )
                 _extensions.append(_extension)
 
