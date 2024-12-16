@@ -23,7 +23,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = ["hatchling"]
+dependencies = ["hatchling", "setuptools"]
 
 [project.urls]
 Documentation = "https://github.com/tunnelworks/hatch-buildext#readme"
