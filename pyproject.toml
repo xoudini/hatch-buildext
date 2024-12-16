@@ -31,6 +31,10 @@ Issues = "https://github.com/tunnelworks/hatch-buildext/issues"
 Source = "https://github.com/tunnelworks/hatch-buildext"
 
 
+[project.entry-points.hatch]
+buildext = "hatch_buildext.hooks"
+
+
 [tool.hatch.version]
 path = "src/hatch_buildext/__about__.py"
 
