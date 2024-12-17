@@ -87,7 +87,9 @@ class ExtensionBuildHook(BuildHookInterface):
     @property
     def _force_include(self) -> t.Mapping[str, str]:
         def _stripl(name: str) -> str:
-            return name.removeprefix(str(self._build_path))
+            from hatch_buildext._compat import removeprefix
+
+            return removeprefix(name, str(self._build_path))
 
         return {a: _stripl(a) for a in self._artifacts}
 
