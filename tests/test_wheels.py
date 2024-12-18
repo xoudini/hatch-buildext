@@ -46,8 +46,8 @@ def _create_module(directory: pathlib.Path) -> None:
 def test_buildwheels(
     project_dir: pathlib.Path,
     build_dir: pathlib.Path,
-    tmp_dir: pathlib.Path,
-    wheel_conf: t.Mapping[str, object],
+    tmp_dir: pathlib.Path,  # noqa: ARG001 # TODO: fix
+    wheel_conf: t.Mapping[str, object],  # noqa: ARG001  # TODO: fix
 ) -> None:
     package = pathlib.Path("src") / "foo"
 
