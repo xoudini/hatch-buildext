@@ -38,11 +38,13 @@ def _read_record(
 # TODO: use ast
 def _create_resolver(root: pathlib.Path, module: str) -> None:
     source = """
+import glob
 import pathlib
 import typing as t
 
 def get_sources(root: str) -> t.Sequence[str]:
-    return list(pathlib.Path(root).joinpath("src").glob("*/**.c"))
+    _src_dir = pathlib.Path(root).joinpath("src")
+    return glob.glob(f"{_src_dir}/**/*.c", recursive=True)
 
 def get_include_dirs(root: str) -> t.Sequence[str]:
     return []
