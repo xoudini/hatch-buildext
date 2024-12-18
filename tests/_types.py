@@ -19,7 +19,7 @@ class _ProjectConfig(t.TypedDict):
 
 
 class _BuildextHookConfig(t.TypedDict):
-    dependencies: t.Sequence[t.Union[t.Literal["hatch-buildext"], str]]
+    dependencies: t.Sequence[t.Literal["hatch-buildext"]]
     extensions: t.Mapping[str, str]
 
 
