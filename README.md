@@ -2,8 +2,9 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/hatch-buildext.svg)](https://pypi.org/project/hatch-buildext)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/hatch-buildext.svg)](https://pypi.org/project/hatch-buildext)
+![Checks & Tests](https://github.com/xoudini/hatch-buildext/actions/workflows/test.yml/badge.svg)
 
------
+---
 
 ## Table of Contents
 
