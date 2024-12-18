@@ -7,6 +7,7 @@ from tests._utils import register_hooks
 
 
 if t.TYPE_CHECKING:
+    from typing_extensions import TypeGuard
     from tests._types import PyProjectConfig
 
 
@@ -25,7 +26,7 @@ def _read_record(
     path = f"{name}-{version}.dist-info/RECORD"
     record = archive.read(path).decode("utf-8")
 
-    def _predicate(part: str) -> t.TypeGuard[str]:
+    def _predicate(part: str) -> "TypeGuard[str]":
         return not part.startswith(path)
 
     def _transform(part: str) -> _File:
