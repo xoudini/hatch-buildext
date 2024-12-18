@@ -30,7 +30,7 @@ libother =  "path.to.another"
 
 ### Example
 
-For instance, if using [src layout](src-layout),
+For instance, if using [src layout][src-layout],
 the directory structure could look as follows:
 
 ```console
