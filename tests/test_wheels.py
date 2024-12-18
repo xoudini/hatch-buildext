@@ -1,7 +1,9 @@
+import functools
 import pathlib
 import typing as t
 import zipfile
 from hatchling.builders.wheel import WheelBuilder
+from tests._utils import register_hooks
 
 
 if t.TYPE_CHECKING:
@@ -33,6 +35,91 @@ def _read_record(
     return tuple(map(_transform, filter(_predicate, record.split())))
 
 
+# TODO: use ast
+def _create_resolver(root: pathlib.Path, module: str) -> None:
+    source = """
+import pathlib
+import typing as t
+
+def get_sources(root: str) -> t.Sequence[str]:
+    return list(pathlib.Path(root).joinpath("src").glob("*/**.c"))
+
+def get_include_dirs(root: str) -> t.Sequence[str]:
+    return []
+
+def get_library_dirs(root: str) -> t.Sequence[str]:
+    return []
+
+def get_libraries(root: str) -> t.Sequence[str]:
+    return []
+
+def get_extra_compile_args(root: str) -> t.Sequence[str]:
+    return ["-std=c99"]
+
+def get_extra_link_args(root: str) -> t.Sequence[str]:
+    return []
+"""
+
+    components = module.split(".")
+
+    path = functools.reduce(pathlib.Path.joinpath, components, root)
+
+    if not path.exists():
+        path.mkdir(parents=True)
+
+    path.joinpath("__init__").with_suffix(".py").write_text(source)
+
+
+def _create_c_sample(directory: pathlib.Path) -> None:
+    header = """
+#ifndef _spam_h
+#define _spam_h
+
+static PyObject * spam_system(PyObject *, PyObject *);
+
+#endif /* _spam_h */
+"""
+    source = """
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+
+static PyObject *
+spam_system(PyObject *self, PyObject *args)
+{
+    const char *command;
+    int sts;
+
+    if (!PyArg_ParseTuple(args, "s", &command))
+        return NULL;
+    sts = system(command);
+    return PyLong_FromLong(sts);
+}
+
+static PyMethodDef SpamMethods[] = {
+    {"system",  spam_system, METH_VARARGS,
+     "Execute a shell command."},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
+static struct PyModuleDef spammodule = {
+    PyModuleDef_HEAD_INIT,
+    "spam",   /* name of module */
+    NULL,     /* module documentation, may be NULL */
+    -1,       /* size of per-interpreter state of the module,
+                 or -1 if the module keeps state in global variables. */
+    SpamMethods
+};
+
+PyMODINIT_FUNC
+PyInit_spam(void)
+{
+    return PyModule_Create(&spammodule);
+}
+"""
+    directory.joinpath("simple").with_suffix(".h").write_text(header)
+    directory.joinpath("simple").with_suffix(".c").write_text(source)
+
+
 def _create_module(directory: pathlib.Path) -> None:
     if not directory.exists():
         directory.mkdir(parents=True)
@@ -43,6 +130,7 @@ def _create_module(directory: pathlib.Path) -> None:
         path.with_suffix(".py").touch()
 
 
+# TODO: fix
 def test_buildwheels(
     project_dir: pathlib.Path,
     build_dir: pathlib.Path,
@@ -51,12 +139,20 @@ def test_buildwheels(
 ) -> None:
     package = pathlib.Path("src") / "foo"
 
+    _resolver = "example.resolver"
+
+    _create_resolver(root=project_dir, module=_resolver)
     _create_module(project_dir / package)
+    _create_c_sample(project_dir / package)
 
     config: "PyProjectConfig" = {
         "project": {
             "name": "test-project",
             "version": "0.1",
+        },
+        "build-system": {
+            "requires": ["hatchling"],
+            "build-backend": "hatchling.build",
         },
         "tool": {
             "hatch": {
@@ -64,14 +160,26 @@ def test_buildwheels(
                     "targets": {
                         "wheel": {
                             "packages": [str(package)],
-                        }
-                    }
+                            "hooks": {
+                                "buildext": {
+                                    "dependencies": [
+                                        "hatch-buildext",
+                                    ],
+                                    "extensions": {
+                                        "spam": _resolver,
+                                    },
+                                },
+                            },
+                        },
+                    },
                 },
-            }
+            },
         },
     }
 
-    builder = WheelBuilder(root=str(project_dir), config=config)
+    builder = WheelBuilder(root=str(project_dir), config=dict(config))
+    register_hooks(builder=builder)
+
     gen = builder.build(directory=str(build_dir), versions=["standard"])
 
     result = pathlib.Path(next(gen))
@@ -80,4 +188,4 @@ def test_buildwheels(
     with zipfile.ZipFile(result) as archive:
         files = _read_record(config=config, archive=archive)
 
-        assert len(files) == 4
+    assert len(files) == 7
