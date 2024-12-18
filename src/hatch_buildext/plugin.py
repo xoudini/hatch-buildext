@@ -1,4 +1,5 @@
 import contextlib
+import glob
 import importlib
 import itertools
 import os
@@ -77,12 +78,12 @@ class ExtensionBuildHook(BuildHookInterface):
     @property
     def _artifacts(self) -> t.Iterable[str]:
         # TODO: fix
-        artifacts = tuple(self._build_path.glob("**/*.so"))
+        artifacts = glob.glob(f"{self._build_path}/**/*.so", recursive=True)
 
         if not artifacts:
             self.app.display_warning("no artifacts found")
 
-        return map(str, artifacts)
+        return artifacts
 
     @property
     def _force_include(self) -> t.Mapping[str, str]:
