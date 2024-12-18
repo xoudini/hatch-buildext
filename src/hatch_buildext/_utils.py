@@ -13,7 +13,5 @@ def add_to_sys_path(path: str) -> t.Generator[None, None, None]:
 
     yield
 
-    try:
+    with contextlib.suppress(ValueError):
         sys.path.remove(path)
-    except ValueError:
-        pass
