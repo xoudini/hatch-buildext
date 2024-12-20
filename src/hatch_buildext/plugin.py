@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import typing as t
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
-from hatch_buildext.resolver import Resolver
+from hatch_buildext.core import Resolver
 
 
 if t.TYPE_CHECKING:
