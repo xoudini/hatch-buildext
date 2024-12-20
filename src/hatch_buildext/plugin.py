@@ -8,6 +8,7 @@ import secrets
 import shutil
 import tempfile
 import typing as t
+from hatchling.builders.config import BuilderConfig
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatch_buildext.core import Resolver
 
@@ -21,7 +22,7 @@ class _Extension(t.NamedTuple):
     resolver: str
 
 
-class ExtensionBuildHook(BuildHookInterface):
+class ExtensionBuildHook(BuildHookInterface[BuilderConfig]):
     PLUGIN_NAME = "buildext"
 
     def __init__(self, *args: object, **kwargs: object) -> None:
