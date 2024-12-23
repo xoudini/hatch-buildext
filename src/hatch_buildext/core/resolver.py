@@ -3,6 +3,7 @@ import typing as t
 
 if t.TYPE_CHECKING:
     from types import ModuleType
+    from hatch_buildext.core.macro import Macro
 
 
 @t.runtime_checkable
@@ -33,6 +34,11 @@ class _GetExtraCompileArgs(t.Protocol):
 @t.runtime_checkable
 class _GetExtraLinkArgs(t.Protocol):
     def get_extra_link_args(self, root: str) -> t.Sequence[str]: ...
+
+
+@t.runtime_checkable
+class _GetMacros(t.Protocol):
+    def get_macros(self, root: str) -> t.List["Macro"]: ...
 
 
 class Resolver:
@@ -74,4 +80,10 @@ class Resolver:
     def extra_link_args(self) -> t.List[str]:
         if isinstance(self._module, _GetExtraLinkArgs):
             return self._module.get_extra_link_args(root=self._root)
+        return []
+
+    @property
+    def macros(self) -> t.List["Macro"]:
+        if isinstance(self._module, _GetMacros):
+            return self._module.get_macros(root=self._root)
         return []
