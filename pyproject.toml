@@ -42,6 +42,10 @@ buildext = "hatch_buildext.hooks"
 path = "src/hatch_buildext/__about__.py"
 
 
+[tool.hatch.envs.default]
+extra-dependencies = ["ipython"]
+
+
 [tool.hatch.envs.types]
 extra-dependencies = ["mypy>=1.0.0", "pytest"]
 
