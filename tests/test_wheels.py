@@ -42,25 +42,31 @@ def _create_resolver(root: pathlib.Path, module: str) -> None:
 import glob
 import pathlib
 import typing as t
+from hatch_buildext import Macro
 
 def get_sources(root: str) -> t.Sequence[str]:
     _src_dir = pathlib.Path(root).joinpath("src")
     return glob.glob(f"{_src_dir}/**/*.c", recursive=True)
 
-def get_include_dirs(root: str) -> t.Sequence[str]:
+def get_include_dirs(root: str, /) -> t.Sequence[str]:
     return []
 
-def get_library_dirs(root: str) -> t.Sequence[str]:
+def get_library_dirs(root: str, /) -> t.Sequence[str]:
     return []
 
-def get_libraries(root: str) -> t.Sequence[str]:
+def get_libraries(root: str, /) -> t.Sequence[str]:
     return []
 
-def get_extra_compile_args(root: str) -> t.Sequence[str]:
+def get_extra_compile_args(root: str, /) -> t.Sequence[str]:
     return ["-std=c99"]
 
-def get_extra_link_args(root: str) -> t.Sequence[str]:
+def get_extra_link_args(root: str, /) -> t.Sequence[str]:
     return []
+
+def get_macros(root: str, /) -> t.Sequence[Macro]:
+    return [
+        Macro(name="DEBUG", value="1"),
+    ]
 """
 
     components = module.split(".")
