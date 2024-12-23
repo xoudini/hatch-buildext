@@ -1,44 +1,58 @@
 import typing as t
+from collections.abc import Sequence
+from hatch_buildext.core.macro import Macro
 
 
 if t.TYPE_CHECKING:
     from types import ModuleType
-    from hatch_buildext.core.macro import Macro
+
+    T = t.TypeVar("T")
 
 
 @t.runtime_checkable
 class _GetSources(t.Protocol):
-    def get_sources(self, root: str) -> t.Sequence[str]: ...
+    def get_sources(self, root: str, /) -> t.Sequence[str]: ...
 
 
 @t.runtime_checkable
 class _GetIncludeDirs(t.Protocol):
-    def get_include_dirs(self, root: str) -> t.Sequence[str]: ...
+    def get_include_dirs(self, root: str, /) -> t.Sequence[str]: ...
 
 
 @t.runtime_checkable
 class _GetLibraryDirs(t.Protocol):
-    def get_library_dirs(self, root: str) -> t.Sequence[str]: ...
+    def get_library_dirs(self, root: str, /) -> t.Sequence[str]: ...
 
 
 @t.runtime_checkable
 class _GetLibraries(t.Protocol):
-    def get_libraries(self, root: str) -> t.Sequence[str]: ...
+    def get_libraries(self, root: str, /) -> t.Sequence[str]: ...
 
 
 @t.runtime_checkable
 class _GetExtraCompileArgs(t.Protocol):
-    def get_extra_compile_args(self, root: str) -> t.Sequence[str]: ...
+    def get_extra_compile_args(self, root: str, /) -> t.Sequence[str]: ...
 
 
 @t.runtime_checkable
 class _GetExtraLinkArgs(t.Protocol):
-    def get_extra_link_args(self, root: str) -> t.Sequence[str]: ...
+    def get_extra_link_args(self, root: str, /) -> t.Sequence[str]: ...
 
 
 @t.runtime_checkable
 class _GetMacros(t.Protocol):
-    def get_macros(self, root: str) -> t.List["Macro"]: ...
+    def get_macros(self, root: str, /) -> t.Sequence["Macro"]: ...
+
+
+def _ensure(values: object, check: t.Type["T"]) -> t.List["T"]:
+    if not isinstance(values, Sequence):
+        raise TypeError(f"{values} not a sequence")
+
+    for x in values:
+        if not isinstance(x, check):
+            raise TypeError(f"incorrect type {type(x)} for {x}, expected {check}")
+
+    return list(values)
 
 
 class Resolver:
@@ -48,42 +62,45 @@ class Resolver:
 
     @property
     def sources(self) -> t.List[str]:
-        if isinstance(self._module, _GetSources):
-            return self._module.get_sources(root=self._root)
-        return []
+        if not isinstance(self._module, _GetSources):
+            return []
+        return _ensure(values=self._module.get_sources(self._root), check=str)
 
     @property
     def include_dirs(self) -> t.List[str]:
-        if isinstance(self._module, _GetIncludeDirs):
-            return self._module.get_include_dirs(root=self._root)
-        return []
+        if not isinstance(self._module, _GetIncludeDirs):
+            return []
+        return _ensure(values=self._module.get_include_dirs(self._root), check=str)
 
     @property
     def library_dirs(self) -> t.List[str]:
-        if isinstance(self._module, _GetLibraryDirs):
-            return self._module.get_library_dirs(root=self._root)
-        return []
+        if not isinstance(self._module, _GetLibraryDirs):
+            return []
+        return _ensure(values=self._module.get_library_dirs(self._root), check=str)
 
     @property
     def libraries(self) -> t.List[str]:
-        if isinstance(self._module, _GetLibraries):
-            return self._module.get_libraries(root=self._root)
-        return []
+        if not isinstance(self._module, _GetLibraries):
+            return []
+        return _ensure(values=self._module.get_libraries(self._root), check=str)
 
     @property
     def extra_compile_args(self) -> t.List[str]:
-        if isinstance(self._module, _GetExtraCompileArgs):
-            return self._module.get_extra_compile_args(root=self._root)
-        return []
+        if not isinstance(self._module, _GetExtraCompileArgs):
+            return []
+        return _ensure(
+            values=self._module.get_extra_compile_args(self._root),
+            check=str,
+        )
 
     @property
     def extra_link_args(self) -> t.List[str]:
-        if isinstance(self._module, _GetExtraLinkArgs):
-            return self._module.get_extra_link_args(root=self._root)
-        return []
+        if not isinstance(self._module, _GetExtraLinkArgs):
+            return []
+        return _ensure(values=self._module.get_extra_link_args(self._root), check=str)
 
     @property
-    def macros(self) -> t.List["Macro"]:
-        if isinstance(self._module, _GetMacros):
-            return self._module.get_macros(root=self._root)
-        return []
+    def macros(self) -> t.List[Macro]:
+        if not isinstance(self._module, _GetMacros):
+            return []
+        return _ensure(values=self._module.get_macros(self._root), check=Macro)
