@@ -106,6 +106,7 @@ class ExtensionBuildHook(BuildHookInterface):
                     runtime_library_dirs=None,
                     extra_compile_args=resolver.extra_compile_args,
                     extra_link_args=resolver.extra_link_args,
+                    define_macros=[(m.name, m.value) for m in resolver.macros],
                 )
                 _extensions.append(_extension)
 
