@@ -48,8 +48,12 @@ class ExtensionBuildHook(BuildHookInterface[BuilderConfig]):
 
     @property
     def _artifacts(self) -> t.Iterable[str]:
-        # TODO: fix
-        artifacts = glob.glob(f"{self._build_path}/**/*.so", recursive=True)
+        patterns = ("**/*.so", "**/*.pyd")
+        artifacts = list(
+            itertools.chain.from_iterable(
+                glob.glob(f"{self._build_path}/{p}", recursive=True) for p in patterns
+            )
+        )
 
         if not artifacts:
             self.app.display_warning("no artifacts found")
